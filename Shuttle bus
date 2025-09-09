@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Skyline Shuttle Bus（平日，自動定位）</title>
+<style>
+body { margin:0; background:#001f4d; color:#fff; font-family:"Microsoft JhengHei",sans-serif; padding:10px }
+h1 { text-align:center; margin:16px 0; font-size:2rem; }
+.section { margin:20px auto; max-width:900px; padding:0 10px; }
+.card { background:#002b6b; border-radius:18px; padding:24px 20px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.35); margin-bottom:16px; }
+.info { font-size:1.4rem; font-weight:bold; margin-bottom:8px; }
+.bus-block { margin:16px 0; }
+.next-trip { font-size:2.2rem; font-weight:bold; color:#ff9800; display:block; margin-bottom:6px; }
+.following-trip { font-size:1.8rem; color:#ccc; display:block; margin-bottom:4px; }
+.clock { font-size:2rem; font-family:monospace; font-weight:bold; letter-spacing:2px; }
+.clock-primary { color:#ff9800; }
+.clock-secondary { color:#ccc; }
+.notice { text-align:center; margin:20px; font-size:1.2rem; }
+.footer { opacity:.8; font-size:.9rem; text-align:center; margin:14px 0 24px; }
+</style>
+</head>
+<body>
+<h1>Skyline 接駁巴士（平日，自動定位）</h1>
+<div id="notice" class="notice">正在定位您的位置...</div>
+<div id="content"></div>
+<div class="footer">提示：需允許定位權限以自動顯示最近站點。頁面每 60 秒自動更新倒數與班次。</div>
+
+<script>
+const DATA={"telford": [{"time": "07:30", "route": "Skyline Tower → 德福廣場"}, {"time": "07:45", "route": "Skyline Tower → 德福廣場"}, {"time": "07:50", "route": "Skyline Tower → 德福廣場"}, {"time": "08:00", "route": "Skyline Tower → 德福廣場"}, {"time": "08:05", "route": "Skyline Tower → 德福廣場"}, {"time": "08:08", "route": "德福廣場 → Skyline Tower"}, {"time": "08:10", "route": "Skyline Tower → 德福廣場"}, {"time": "08:15", "route": "Skyline Tower → 德福廣場"}, {"time": "08:16", "route": "德福廣場 → Skyline Tower"}, {"time": "08:19", "route": "Skyline Tower → 德福廣場"}, {"time": "08:23", "route": "德福廣場 → Skyline Tower"}, {"time": "08:23", "route": "Skyline Tower → 德福廣場"}, {"time": "08:27", "route": "Skyline Tower → 德福廣場"}, {"time": "08:30", "route": "Skyline Tower → 德福廣場"}, {"time": "08:31", "route": "德福廣場 → Skyline Tower"}, {"time": "08:33", "route": "Skyline Tower → 德福廣場"}, {"time": "08:37", "route": "Skyline Tower → 德福廣場"}, {"time": "08:39", "route": "德福廣場 → Skyline Tower"}, {"time": "08:42", "route": "Skyline Tower → 德福廣場"}, {"time": "08:47", "route": "Skyline Tower → 德福廣場"}, {"time": "08:48", "route": "德福廣場 → Skyline Tower"}, {"time": "08:50", "route": "Skyline Tower → 德福廣場"}, {"time": "08:53", "route": "德福廣場 → Skyline Tower"}, {"time": "08:53", "route": "Skyline Tower → 德福廣場"}, {"time": "08:55", "route": "Skyline Tower → 德福廣場"}, {"time": "08:59", "route": "德福廣場 → Skyline Tower"}, {"time": "09:00", "route": "Skyline Tower → 德福廣場"}, {"time": "09:01", "route": "德福廣場 → Skyline Tower"}, {"time": "09:03", "route": "Skyline Tower → 德福廣場"}, {"time": "09:06", "route": "Skyline Tower → 德福廣場"}, {"time": "09:08", "route": "德福廣場 → Skyline Tower"}, {"time": "09:10", "route": "Skyline Tower → 德福廣場"}, {"time": "09:16", "route": "德福廣場 → Skyline Tower"}, {"time": "09:16", "route": "Skyline Tower → 德福廣場"}, {"time": "09:23", "route": "德福廣場 → Skyline Tower"}, {"time": "09:24", "route": "Skyline Tower → 德福廣場"}, {"time": "09:27", "route": "Skyline Tower → 德福廣場"}, {"time": "09:30", "route": "Skyline Tower → 德福廣場"}, {"time": "09:40", "route": "德福廣場 → Skyline Tower"}, {"time": "09:40", "route": "Skyline Tower → 德福廣場"}, {"time": "09:50", "route": "Skyline Tower → 德福廣場"}, {"time": "09:55", "route": "德福廣場 → Skyline Tower"}, {"time": "10:00", "route": "Skyline Tower → 德福廣場"}, {"time": "10:10", "route": "德福廣場 → Skyline Tower"}, {"time": "10:15", "route": "Skyline Tower → 德福廣場"}, {"time": "10:25", "route": "德福廣場 → Skyline Tower"}, {"time": "10:30", "route": "Skyline Tower → 德福廣場"}, {"time": "10:40", "route": "德福廣場 → Skyline Tower"}, {"time": "10:45", "route": "Skyline Tower → 德福廣場"}, {"time": "10:55", "route": "德福廣場 → Skyline Tower"}, {"time": "11:00", "route": "Skyline Tower → 德福廣場"}, {"time": "11:10", "route": "德福廣場 → Skyline Tower"}, {"time": "11:15", "route": "Skyline Tower → 德福廣場"}, {"time": "11:25", "route": "德福廣場 → Skyline Tower"}, {"time": "11:30", "route": "Skyline Tower → 德福廣場"}, {"time": "11:40", "route": "德福廣場 → Skyline Tower"}, {"time": "11:45", "route": "Skyline Tower → 德福廣場"}, {"time": "11:55", "route": "德福廣場 → Skyline Tower"}, {"time": "12:00", "route": "德福廣場 → Skyline Tower"}, {"time": "12:00", "route": "Skyline Tower → 德福廣場"}, {"time": "12:05", "route": "德福廣場 → Skyline Tower"}, {"time": "12:10", "route": "德福廣場 → Skyline Tower"}, {"time": "12:10", "route": "Skyline Tower → 德福廣場"}, {"time": "12:20", "route": "德福廣場 → Skyline Tower"}, {"time": "12:20", "route": "Skyline Tower → 德福廣場"}, {"time": "12:25", "route": "德福廣場 → Skyline Tower"}, {"time": "12:30", "route": "德福廣場 → Skyline Tower"}, {"time": "12:30", "route": "Skyline Tower → 德福廣場"}, {"time": "12:40", "route": "德福廣場 → Skyline Tower"}, {"time": "12:45", "route": "德福廣場 → Skyline Tower"}, {"time": "12:45", "route": "Skyline Tower → 德福廣場"}, {"time": "12:50", "route": "德福廣場 → Skyline Tower"}, {"time": "12:50", "route": "Skyline Tower → 德福廣場"}, {"time": "12:55", "route": "Skyline Tower → 德福廣場"}, {"time": "13:00", "route": "德福廣場 → Skyline Tower"}, {"time": "13:03", "route": "德福廣場 → Skyline Tower"}, {"time": "13:05", "route": "德福廣場 → Skyline Tower"}, {"time": "13:05", "route": "Skyline Tower → 德福廣場"}, {"time": "13:10", "route": "德福廣場 → Skyline Tower"}, {"time": "13:10", "route": "Skyline Tower → 德福廣場"}, {"time": "13:15", "route": "德福廣場 → Skyline Tower"}, {"time": "13:15", "route": "Skyline Tower → 德福廣場"}, {"time": "13:20", "route": "德福廣場 → Skyline Tower"}, {"time": "13:23", "route": "德福廣場 → Skyline Tower"}, {"time": "13:25", "route": "德福廣場 → Skyline Tower"}, {"time": "13:25", "route": "Skyline Tower → 德福廣場"}, {"time": "13:30", "route": "Skyline Tower → 德福廣場"}, {"time": "13:35", "route": "德福廣場 → Skyline Tower"}, {"time": "13:35", "route": "Skyline Tower → 德福廣場"}, {"time": "13:40", "route": "德福廣場 → Skyline Tower"}, {"time": "13:43", "route": "德福廣場 → Skyline Tower"}, {"time": "13:45", "route": "德福廣場 → Skyline Tower"}, {"time": "13:45", "route": "Skyline Tower → 德福廣場"}, {"time": "13:50", "route": "德福廣場 → Skyline Tower"}, {"time": "13:50", "route": "Skyline Tower → 德福廣場"}, {"time": "13:55", "route": "Skyline Tower → 德福廣場"}, {"time": "14:00", "route": "德福廣場 → Skyline Tower"}, {"time": "14:05", "route": "Skyline Tower → 德福廣場"}, {"time": "14:10", "route": "德福廣場 → Skyline Tower"}, {"time": "14:15", "route": "Skyline Tower → 德福廣場"}, {"time": "14:20", "route": "德福廣場 → Skyline Tower"}, {"time": "14:25", "route": "Skyline Tower → 德福廣場"}, {"time": "14:30", "route": "德福廣場 → Skyline Tower"}, {"time": "14:35", "route": "Skyline Tower → 德福廣場"}, {"time": "14:40", "route": "德福廣場 → Skyline Tower"}, {"time": "14:45", "route": "Skyline Tower → 德福廣場"}, {"time": "14:50", "route": "德福廣場 → Skyline Tower"}, {"time": "14:55", "route": "Skyline Tower → 德福廣場"}, {"time": "15:05", "route": "德福廣場 → Skyline Tower"}, {"time": "15:10", "route": "Skyline Tower → 德福廣場"}, {"time": "15:35", "route": "德福廣場 → Skyline Tower"}, {"time": "15:40", "route": "Skyline Tower → 德福廣場"}, {"time": "16:05", "route": "德福廣場 → Skyline Tower"}, {"time": "16:10", "route": "Skyline Tower → 德福廣場"}, {"time": "16:35", "route": "德福廣場 → Skyline Tower"}, {"time": "16:40", "route": "Skyline Tower → 德福廣場"}, {"time": "17:05", "route": "德福廣場 → Skyline Tower"}, {"time": "17:10", "route": "Skyline Tower → 德福廣場"}, {"time": "17:35", "route": "德福廣場 → Skyline Tower"}, {"time": "17:40", "route": "Skyline Tower → 德福廣場"}, {"time": "18:05", "route": "德福廣場 → Skyline Tower"}, {"time": "18:10", "route": "Skyline Tower → 德福廣場"}, {"time": "18:35", "route": "德福廣場 → Skyline Tower"}, {"time": "18:40", "route": "Skyline Tower → 德福廣場"}, {"time": "19:05", "route": "德福廣場 → Skyline Tower"}, {"time": "19:10", "route": "Skyline Tower → 德福廣場"}, {"time": "19:35", "route": "德福廣場 → Skyline Tower"}, {"time": "19:40", "route": "Skyline Tower → 德福廣場"}], "kaitak": [{"time": "07:30", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "07:45", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "08:05", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "08:10", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "08:15", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "08:20", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "08:20", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "08:25", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "08:30", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "08:30", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "08:35", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "08:35", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "08:40", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "08:40", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "08:45", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "08:45", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "08:50", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "08:50", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "08:55", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "08:55", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "09:00", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "09:00", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "09:05", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "09:05", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "09:10", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "09:10", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "09:15", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "09:15", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "09:20", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "09:20", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "09:25", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "09:25", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "09:30", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "09:30", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "09:35", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "09:35", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "09:40", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "09:40", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "09:45", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "09:45", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "09:50", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "09:50", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "09:55", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "09:55", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "10:00", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "10:05", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "10:05", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "10:10", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "10:25", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "10:30", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "10:45", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "10:50", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "11:05", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "11:10", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "11:25", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "11:30", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "11:45", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "11:50", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "12:05", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "12:10", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "12:25", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "12:35", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "12:35", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "12:45", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "12:45", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "12:55", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "12:55", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "13:05", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "13:05", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "13:15", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "13:15", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "13:25", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "13:25", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "13:35", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "13:35", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "13:45", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "13:45", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "13:55", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "13:55", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "14:05", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "14:05", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "14:15", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "14:15", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "14:25", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "14:25", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "14:35", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "14:55", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "15:00", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "15:20", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "15:25", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "15:45", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "15:50", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "16:10", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "16:15", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "16:35", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "16:40", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "17:05", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "17:10", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "17:15", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "17:20", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "17:25", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "17:30", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "17:35", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "17:35", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "17:40", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "17:40", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "17:45", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "17:45", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "17:50", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "17:50", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "17:55", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "17:55", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "18:00", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "18:00", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "18:05", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "18:05", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "18:10", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "18:10", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "18:15", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "18:15", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "18:20", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "18:20", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "18:25", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "18:25", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "18:30", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "18:30", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "18:35", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "18:35", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "18:40", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "18:40", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "18:45", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "18:45", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "18:50", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "18:50", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "18:55", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "18:55", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "19:00", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "19:00", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "19:05", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "19:10", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "19:15", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "19:20", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "19:25", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "19:30", "route": "Skyline Tower → 啟德地鐵站"}, {"time": "19:35", "route": "啟德地鐵站 → Skyline Tower"}, {"time": "19:40", "route": "Skyline Tower → 啟德地鐵站"}]};
+
+/* ---- 座標（依您提供） ---- */
+const STOPS = {
+  "skyline": { name:"Skyline Tower", lat:22.32752247263739, lng:114.20528911347996 },
+  "telford":  { name:"德福廣場",    lat:22.32391676082556, lng:114.21515251188532 },
+  "kaitak":   { name:"啟德地鐵站",  lat:22.331482704077192,  lng:114.20053599707515  }
+};
+
+function distance(lat1,lon1,lat2,lon2){
+  const R=6371e3;
+  const φ1=lat1*Math.PI/180, φ2=lat2*Math.PI/180;
+  const Δφ=(lat2-lat1)*Math.PI/180;
+  const Δλ=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(Δφ/2)**2+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function parseTimeToDate(t){
+  const [hh,mm]=t.split(':').map(Number);
+  const now=new Date();
+  return new Date(now.getFullYear(),now.getMonth(),now.getDate(),hh,mm,0,0);
+}
+function pad(n){return String(n).padStart(2,'0')}
+function diffStr(ms){
+  if(ms<=0)return"00:00:00";
+  let s=Math.floor(ms/1000);
+  const hh=pad(Math.floor(s/3600)); s%=3600;
+  const mm=pad(Math.floor(s/60)); s%=60;
+  const ss=pad(s);
+  return `${hh}:${mm}:${ss}`;
+}
+function filterDirection(trips,from,to){
+  return trips.filter(x=>x.route.trim()==`${from} → ${to}`);
+}
+function findNextTrips(trips,count=2){
+  const now=new Date();
+  return trips.map(x=>({...x,dt:parseTimeToDate(x.time)}))
+              .filter(x=>x.dt>now)
+              .sort((a,b)=>a.dt-b.dt)
+              .slice(0,count);
+}
+
+let tickTargets={};
+function setupCard(dataKey,from,to){
+  const trips=filterDirection(DATA[dataKey],from,to);
+  const nextTrips=findNextTrips(trips,2);
+  let html="";
+  const cardId = from+"_"+to;
+  tickTargets[cardId]=[];
+
+  if(nextTrips.length>0){
+    nextTrips.forEach((t,i)=>{
+      const idx=i;
+      const label=i===0?`<span class="next-trip">下一班：${t.time}</span>`:`<span class="following-trip">下一班之後：${t.time}</span>`;
+      const cls=i===0?"clock clock-primary":"clock clock-secondary";
+      html+=`<div class="bus-block">
+               ${label}
+               <div id="${cardId}_${idx}" class="${cls}">倒數：--:--:--</div>
+             </div>`;
+      tickTargets[cardId].push({elementId: cardId+"_"+idx, target:t.dt});
+    });
+  }else{
+    html=`<div class="bus-block"><span>今日已無班次</span></div>`;
+  }
+
+  return `<div class="card"><div class="info">${from} → ${to}</div>${html}</div>`;
+}
+
+function showForLocation(loc){
+  const notice=document.getElementById("notice");
+  const content=document.getElementById("content");
+  notice.style.display="none";
+  let html="";
+  if(loc==="skyline"){
+    html+=setupCard("telford","Skyline Tower","德福廣場");
+    html+=setupCard("kaitak","Skyline Tower","啟德地鐵站");
+  }else if(loc==="telford"){
+    html+=setupCard("telford","德福廣場","Skyline Tower");
+  }else if(loc==="kaitak"){
+    html+=setupCard("kaitak","啟德地鐵站","Skyline Tower");
+  }else{
+    notice.style.display="block";
+    notice.textContent="⚠️ 未能判斷站點，請確認定位已開啟。";
+  }
+  content.innerHTML=html;
+}
+
+function tick(){
+  const now=new Date();
+  for(const id in tickTargets){
+    tickTargets[id].forEach(t=>{
+      const el=document.getElementById(t.elementId);
+      if(el) el.textContent="倒數："+diffStr(t.target-now);
+    });
+  }
+}
+
+function findNearest(lat,lon){
+  let nearest=null, best=1e12;
+  for(const k in STOPS){
+    const d=distance(lat,lon,STOPS[k].lat,STOPS[k].lng);
+    if(d<best){ best=d; nearest=k; }
+  }
+  return nearest;
+}
+
+/* 啟動：定位 → 顯示對應站點 → 啟動倒數與定時更新 */
+navigator.geolocation.getCurrentPosition(pos=>{
+  const loc=findNearest(pos.coords.latitude,pos.coords.longitude);
+  showForLocation(loc);
+  tick();
+  setInterval(tick,1000);
+  setInterval(()=>{ showForLocation(loc); },60000);
+},err=>{
+  document.getElementById("notice").textContent="⚠️ 無法取得定位，請允許位置存取後重新整理。";
+});
+</script>
+</body>
+</html>
